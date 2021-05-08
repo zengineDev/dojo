@@ -1,4 +1,4 @@
-module dojo
+module github.com/zengineDev/dojo
 
 go 1.16
 
