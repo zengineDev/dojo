@@ -29,7 +29,7 @@ type DefaultConfiguration struct {
 	DB  DatabaseConfig
 }
 
-func LoadConfigs(cfg *DefaultConfiguration) {
+func LoadConfigs(cfg *DefaultConfiguration) *DefaultConfiguration {
 	v := viper.New()
 
 	// Viper settings
@@ -57,4 +57,6 @@ func LoadConfigs(cfg *DefaultConfiguration) {
 	if err != nil {
 		panic(errors.Wrap(err, "Cant unmarshall configuration"))
 	}
+
+	return cfg
 }
