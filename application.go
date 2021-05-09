@@ -14,6 +14,7 @@ import (
 
 type Application struct {
 	Configuration DefaultConfiguration
+	Middleware    *MiddlewareStack `json:"-"`
 	router        *mux.Router
 }
 
