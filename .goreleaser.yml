@@ -38,12 +38,12 @@ changelog:
       - '^test:'
 dockers:
   - image_templates:
-      - zengineDev/dojoctl
+      - zenginedev/dojoctl
 brews:
   -
     name: 'dojoctl'
     tap:
-      owner: 'zengineDev'
+      owner: 'zenginedev'
       name: 'homebrew-tap'
     install: |
       bin.install "dojoctl"
