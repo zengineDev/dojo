@@ -32,6 +32,8 @@ func (app Application) View(ctx Context, viewName string, data ViewData) {
 
 	// TODO merge all data from the context to the view
 
+	data["Assets"] = app.Assets()
+
 	err = ts.Execute(ctx.Response(), data)
 	if err != nil {
 		log.Println(err.Error())
