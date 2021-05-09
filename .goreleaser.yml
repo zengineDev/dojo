@@ -39,7 +39,7 @@ changelog:
       - '^test:'
 dockers:
   - image_templates:
-      - zenginedev/dojoctl
+      - "ghcr.io/zenginedev/dojoctl:{{ .Tag }}"
     binaries:
       - dojoctl
 brews:
