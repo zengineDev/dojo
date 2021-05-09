@@ -28,10 +28,15 @@ type ViewConfig struct {
 	Path string `json:"path"`
 }
 
+type AssetsConfigs struct {
+	Path string `json:"path"`
+}
+
 type DefaultConfiguration struct {
-	App  AppConfig
-	DB   DatabaseConfig
-	View ViewConfig
+	App    AppConfig
+	DB     DatabaseConfig
+	View   ViewConfig
+	Assets AssetsConfigs
 }
 
 func LoadConfigs(cfg *DefaultConfiguration) *DefaultConfiguration {
