@@ -24,6 +24,7 @@ func New(conf DefaultConfiguration) *Application {
 	app := &Application{
 		Configuration: conf,
 		router:        mux.NewRouter(),
+		Middleware:    newMiddlewareStack(),
 	}
 
 	return app
