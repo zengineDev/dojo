@@ -5,11 +5,11 @@ before:
     # You may remove this if you don't use go modules.
     - go mod tidy
 builds:
-  - main: ./dojo/main.go
+  - main: ./dojoctl/main.go
     env:
       - CGO_ENABLED=0
     ldflags:
-      - -s -w -X "github.com/zenginedev/dojo/runtime.Version={{.Tag}}"
+      - -s -w -X "github.com/zenginedev/dojoctl/runtime.Version={{.Tag}}"
     goos:
       - linux
       - windows
@@ -36,3 +36,14 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+dockers:
+  - image_templates:
+      - zengineDev/dojoctl
+brews:
+  -
+    name: 'dojoctl'
+    tap:
+      owner: 'zengineDev'
+      name: 'homebrew-tap'
+    install: |
+      bin.install "dojoctl"
