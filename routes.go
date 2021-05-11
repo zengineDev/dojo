@@ -31,7 +31,10 @@ func (r RouteConfig) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		// things have really hit the fan if we're here!!
 		//a.Logger.Error(err)
 		c.Response().WriteHeader(status)
-		c.Response().Write([]byte(err.Error()))
+		_, err = c.Response().Write([]byte(err.Error()))
+		if err != nil {
+			a.Logger.Error(err)
+		}
 	}
 }
 

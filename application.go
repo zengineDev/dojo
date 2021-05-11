@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,15 +17,27 @@ type Application struct {
 	Configuration DefaultConfiguration
 	Middleware    *MiddlewareStack `json:"-"`
 	router        *mux.Router
+	Logger        *logrus.Logger
 }
 
 // New creates a new instance of Application
 func New(conf DefaultConfiguration) *Application {
 
+	logger := logrus.New()
+	logger.SetFormatter(&logrus.JSONFormatter{})
+
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	logger.SetOutput(os.Stdout)
+
+	// Only log the warning severity or above.
+	logger.SetLevel(logrus.DebugLevel)
+
 	app := &Application{
 		Configuration: conf,
 		router:        mux.NewRouter(),
 		Middleware:    newMiddlewareStack(),
+		Logger:        logger,
 	}
 
 	return app
@@ -56,12 +69,13 @@ func (app *Application) Serve() {
 
 	err := srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
-		//return err
+		// return err
+		app.Logger.Error(err)
 	}
 
 	err = <-shutdownError
 	if err != nil {
-		//return err
+		app.Logger.Error(err)
 	}
 
 }
