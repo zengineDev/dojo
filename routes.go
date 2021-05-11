@@ -42,6 +42,38 @@ func (app *Application) GET(p string, h Handler) {
 	app.addRoute(http.MethodGet, p, h)
 }
 
+func (app *Application) POST(p string, h Handler) {
+	app.addRoute(http.MethodPost, p, h)
+}
+
+func (app *Application) PUT(p string, h Handler) {
+	app.addRoute(http.MethodPut, p, h)
+}
+
+func (app *Application) PATCH(p string, h Handler) {
+	app.addRoute(http.MethodPatch, p, h)
+}
+
+func (app *Application) DELETE(p string, h Handler) {
+	app.addRoute(http.MethodDelete, p, h)
+}
+
+func (app *Application) OPTIONS(p string, h Handler) {
+	app.addRoute(http.MethodOptions, p, h)
+}
+
+func (app *Application) HEAD(p string, h Handler) {
+	app.addRoute(http.MethodHead, p, h)
+}
+
+func (app *Application) CONNECT(p string, h Handler) {
+	app.addRoute(http.MethodConnect, p, h)
+}
+
+func (app *Application) TRACE(p string, h Handler) {
+	app.addRoute(http.MethodTrace, p, h)
+}
+
 func (app *Application) addRoute(method string, url string, h Handler) {
 
 	r := &RouteConfig{
