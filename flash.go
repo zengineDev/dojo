@@ -1,6 +1,9 @@
 package dojo
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // flashKey is the prefix inside the Session.
 const flashKey = "_flash_"
@@ -36,10 +39,13 @@ func (f Flash) Add(key, value string) {
 }
 
 //Persist the flash inside the session.
-func (f Flash) persist(session *Session) {
+func (f Flash) Persist(session *Session) {
 	b, _ := json.Marshal(f.data)
 	session.Set(flashKey, b)
-	session.Save()
+	err := session.Save()
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 //newFlash creates a new Flash and loads the session data inside its data.
@@ -50,7 +56,10 @@ func newFlash(session *Session) *Flash {
 
 	if session.Session != nil {
 		if f := session.Get(flashKey); f != nil {
-			json.Unmarshal(f.([]byte), &result.data)
+			err := json.Unmarshal(f.([]byte), &result.data)
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 	return result

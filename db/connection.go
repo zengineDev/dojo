@@ -25,7 +25,7 @@ func GetPool() *Driver {
 
 		config, err := pgxpool.ParseConfig(cfg.DB.DSN())
 		if err != nil {
-			// ...
+			panic(err)
 		}
 		config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
 			// do something with every new connection
