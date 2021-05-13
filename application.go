@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -17,10 +16,10 @@ import (
 type Application struct {
 	Configuration      DefaultConfiguration
 	MiddlewareRegistry *MiddlewareRegistry `json:"-"`
-	router             *mux.Router
 	Logger             *logrus.Logger
 	SessionStore       *sessions.CookieStore
 	Auth               *Authentication
+	Route              *Router
 }
 
 // New creates a new instance of Application
@@ -43,13 +42,13 @@ func New(conf DefaultConfiguration) *Application {
 
 	app := &Application{
 		Configuration:      conf,
-		router:             mux.NewRouter(),
 		MiddlewareRegistry: NewMiddlewareRegistry(),
 		Logger:             logger,
 		SessionStore:       cookieStore,
 	}
 
 	app.Auth = NewAuthentication(app)
+	app.Route = NewRouter(app)
 
 	return app
 }
@@ -57,7 +56,7 @@ func New(conf DefaultConfiguration) *Application {
 func (app *Application) Serve() {
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.Configuration.App.Port),
-		Handler:      app.router,
+		Handler:      app.Route.GetMux(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,

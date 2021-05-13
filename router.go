@@ -33,6 +33,34 @@ func (r *Router) Get(path string, handler Handler) {
 	r.addRoute(http.MethodGet, path, handler)
 }
 
+func (r *Router) Post(path string, handler Handler) {
+	r.addRoute(http.MethodPost, path, handler)
+}
+
+func (r *Router) Put(path string, handler Handler) {
+	r.addRoute(http.MethodPut, path, handler)
+}
+
+func (r *Router) Patch(path string, handler Handler) {
+	r.addRoute(http.MethodPatch, path, handler)
+}
+
+func (r *Router) Options(path string, handler Handler) {
+	r.addRoute(http.MethodOptions, path, handler)
+}
+
+func (r *Router) Delete(path string, handler Handler) {
+	r.addRoute(http.MethodDelete, path, handler)
+}
+
+func (r *Router) Trace(path string, handler Handler) {
+	r.addRoute(http.MethodTrace, path, handler)
+}
+
+func (r *Router) Connect(path string, handler Handler) {
+	r.addRoute(http.MethodConnect, path, handler)
+}
+
 func (r *Router) RouteGroup(prefix string, cb func(router *Router)) {
 	subRouter := r.router.PathPrefix(prefix).Subrouter()
 
