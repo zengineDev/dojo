@@ -1,6 +1,7 @@
 package dojo
 
 import (
+	"fmt"
 	"os"
 	"strings"
 )
@@ -10,6 +11,7 @@ import (
 type Asset struct {
 	Name      string
 	Extension FileExtension
+	Path      string
 }
 
 type FileExtension string
@@ -37,6 +39,7 @@ func (app *Application) Assets() []Asset {
 			assets = append(assets, Asset{
 				Name:      parts[0],
 				Extension: FileExtension(parts[1]),
+				Path:      fmt.Sprintf("%s/assets/%s", app.Configuration.App.Domain, file.Name()),
 			})
 		}
 	}
