@@ -12,7 +12,9 @@ type Router struct {
 }
 
 func NewRouter(app *Application) *Router {
-	return &Router{router: mux.NewRouter(), app: app}
+	r := mux.NewRouter()
+	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets/dist"))))
+	return &Router{router: r, app: app}
 }
 
 func (r *Router) GetMux() *mux.Router {
