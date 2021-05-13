@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
@@ -14,10 +15,13 @@ import (
 )
 
 type Application struct {
-	Configuration DefaultConfiguration
-	Middleware    *MiddlewareStack `json:"-"`
-	router        *mux.Router
-	Logger        *logrus.Logger
+	Configuration      DefaultConfiguration
+	MiddlewareRegistry *MiddlewareRegistry `json:"-"`
+	router             *mux.Router
+	Logger             *logrus.Logger
+	root               *Application
+	SessionStore       *sessions.CookieStore
+	Auth               *Authentication
 }
 
 // New creates a new instance of Application
@@ -29,16 +33,24 @@ func New(conf DefaultConfiguration) *Application {
 	// Output to stdout instead of the default stderr
 	// Can be any io.Writer, see below for File example
 	logger.SetOutput(os.Stdout)
-
 	// Only log the warning severity or above.
 	logger.SetLevel(logrus.DebugLevel)
 
-	app := &Application{
-		Configuration: conf,
-		router:        mux.NewRouter(),
-		Middleware:    newMiddlewareStack(),
-		Logger:        logger,
+	cookieStore := sessions.NewCookieStore([]byte(conf.Session.Secret))
+	cookieStore.Options.HttpOnly = true
+	if conf.App.Environment == "production" {
+		cookieStore.Options.Secure = true
 	}
+
+	app := &Application{
+		Configuration:      conf,
+		router:             mux.NewRouter(),
+		MiddlewareRegistry: NewMiddlewareRegistry(),
+		Logger:             logger,
+		SessionStore:       cookieStore,
+	}
+
+	app.Auth = NewAuthentication(app)
 
 	return app
 }

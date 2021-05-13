@@ -1,14 +1,14 @@
 package dojo
 
-type MiddlewareFunc func(Handler) Handler
+import (
+	"errors"
+	"fmt"
+)
 
-func (app *Application) Use(mw ...MiddlewareFunc) {
-	app.Middleware.Use(mw...)
-}
+type MiddlewareFunc func(Handler) Handler
 
 type MiddlewareStack struct {
 	stack []MiddlewareFunc
-	skips map[string]bool
 }
 
 func (ms *MiddlewareStack) Use(mw ...MiddlewareFunc) {
@@ -21,8 +21,12 @@ func (ms *MiddlewareStack) handler(rc RouteConfig) Handler {
 		mh := func(_ Handler) Handler {
 			return h
 		}
-
 		tstack := []MiddlewareFunc{mh}
+		sl := len(ms.stack) - 1
+		for i := sl; i >= 0; i-- {
+			mw := ms.stack[i]
+			tstack = append(tstack, mw)
+		}
 
 		for _, mw := range tstack {
 			h = mw(h)
@@ -32,9 +36,38 @@ func (ms *MiddlewareStack) handler(rc RouteConfig) Handler {
 	return h
 }
 
-func newMiddlewareStack(mws ...MiddlewareFunc) *MiddlewareStack {
-	return &MiddlewareStack{
-		stack: mws,
-		skips: map[string]bool{},
+type Middleware struct {
+	Name    string
+	Handler MiddlewareFunc
+}
+
+type MiddlewareRegistry struct {
+	middlewares []Middleware
+	stacks      map[string][]string
+}
+
+func NewMiddlewareRegistry() *MiddlewareRegistry {
+	return &MiddlewareRegistry{
+		stacks: make(map[string][]string),
 	}
+}
+
+func (registry *MiddlewareRegistry) Register(name string, fn MiddlewareFunc) {
+	registry.middlewares = append(registry.middlewares, Middleware{
+		Name:    name,
+		Handler: fn,
+	})
+}
+
+func (registry *MiddlewareRegistry) RegisterStack(name string, middlewares []string) {
+	registry.stacks[name] = middlewares
+}
+
+func (registry MiddlewareRegistry) findMiddleware(name string) (Middleware, error) {
+	for _, m := range registry.middlewares {
+		if m.Name == name {
+			return m, nil
+		}
+	}
+	return Middleware{}, errors.New(fmt.Sprintf("middleware %s is not registered", name))
 }
