@@ -130,7 +130,7 @@ func (auth *Authentication) ExchangeAuthorisationCode(ctx Context, authorisation
 	}
 
 	if resp.Error() != nil {
-		return result, errors.New(fmt.Sprintf("%s", resp.Error()))
+		return result, fmt.Errorf("%s", resp.Error())
 	}
 
 	return result, nil

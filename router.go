@@ -26,9 +26,7 @@ func (r *Router) Use(name string) {
 
 func (r *Router) UseStack(name string) {
 	stack := r.app.MiddlewareRegistry.stacks[name]
-	for _, m := range stack {
-		r.middlewares = append(r.middlewares, m)
-	}
+	r.middlewares = append(r.middlewares, stack...)
 }
 
 func (r *Router) Get(path string, handler Handler) {

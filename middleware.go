@@ -1,7 +1,6 @@
 package dojo
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -69,5 +68,5 @@ func (registry MiddlewareRegistry) findMiddleware(name string) (Middleware, erro
 			return m, nil
 		}
 	}
-	return Middleware{}, errors.New(fmt.Sprintf("middleware %s is not registered", name))
+	return Middleware{}, fmt.Errorf("middleware %s is not registered", name)
 }

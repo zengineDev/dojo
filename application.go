@@ -19,7 +19,6 @@ type Application struct {
 	MiddlewareRegistry *MiddlewareRegistry `json:"-"`
 	router             *mux.Router
 	Logger             *logrus.Logger
-	root               *Application
 	SessionStore       *sessions.CookieStore
 	Auth               *Authentication
 }
