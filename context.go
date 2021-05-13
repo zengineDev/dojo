@@ -12,6 +12,12 @@ type Context interface {
 	context.Context
 	Response() http.ResponseWriter
 	Request() *http.Request
+	Session() *Session
+	Cookies() *Cookies
+	Params() ParamValues
+	Param(string) string
+	Bind(interface{}) error
+	Data() map[string]interface{}
 }
 
 type ParamValues interface {
@@ -36,6 +42,8 @@ func (app Application) NewContext(rc RouteConfig, w http.ResponseWriter, r *http
 		}
 	}
 
+	session := app.getSession(r, w)
+
 	data := &sync.Map{}
 
 	data.Store("app", app)
@@ -49,9 +57,11 @@ func (app Application) NewContext(rc RouteConfig, w http.ResponseWriter, r *http
 	return &DefaultContext{
 		Context: r.Context(),
 		// contentType: ct,
+		session:  session,
 		response: w,
 		request:  r,
 		params:   params,
+		flash:    newFlash(session),
 		data:     data,
 	}
 }

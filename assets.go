@@ -30,6 +30,7 @@ func (app *Application) Assets() []Asset {
 	}
 	for _, file := range files {
 		if file.IsDir() {
+			app.Logger.Debugf("assets: skip dir %s", file.Name())
 			continue
 		}
 
