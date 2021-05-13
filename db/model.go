@@ -9,9 +9,7 @@ type Model struct {
 	DB *Driver
 }
 
-func (m Model) NewModel() *Model {
-	return &Model{
-		SB: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
-		DB: GetPool(),
-	}
+func (m *Model) Init() {
+	m.SB = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+	m.DB = GetPool()
 }
