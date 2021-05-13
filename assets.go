@@ -1,8 +1,7 @@
 package dojo
 
 import (
-	"io/ioutil"
-	"log"
+	"os"
 	"strings"
 )
 
@@ -23,17 +22,23 @@ const (
 func (app *Application) Assets() []Asset {
 	var assets []Asset
 
-	files, err := ioutil.ReadDir(app.Configuration.Assets.Path)
+	files, err := os.ReadDir(app.Configuration.Assets.Path)
 	if err != nil {
-		log.Fatal(err)
+		app.Logger.Fatal(err)
 	}
 	for _, file := range files {
-		parts := strings.Split(file.Name(), ".")
+		if file.IsDir() {
+			continue
+		}
 
-		assets = append(assets, Asset{
-			Name:      parts[0],
-			Extension: FileExtension(parts[1]),
-		})
+		app.Logger.Debugf("assets: register file %s", file.Name())
+		parts := strings.Split(file.Name(), ".")
+		if len(parts) > 1 {
+			assets = append(assets, Asset{
+				Name:      parts[0],
+				Extension: FileExtension(parts[1]),
+			})
+		}
 	}
 
 	return assets
