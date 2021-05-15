@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/gofrs/uuid"
 	"github.com/zengineDev/dojo/helpers"
 	"golang.org/x/crypto/argon2"
 	"strings"
@@ -48,9 +49,28 @@ const (
 	UserUserType  AuthUserType = "user"
 )
 
+type Authenticable interface {
+	GetAuthType() AuthUserType
+	GetAuthID() uuid.UUID
+	GetAuthData() interface{}
+}
+
 type AuthUser struct {
+	ID   uuid.UUID
 	Type AuthUserType
 	Data interface{}
+}
+
+func (u *AuthUser) GetAuthType() AuthUserType {
+	return u.Type
+}
+
+func (u *AuthUser) GetAuthID() uuid.UUID {
+	return u.ID
+}
+
+func (u *AuthUser) GetAuthData() interface{} {
+	return u.Data
 }
 
 type Authentication struct {
@@ -65,6 +85,12 @@ func (auth *Authentication) GetAuthUser(ctx Context) AuthUser {
 	session := auth.app.getSession(ctx.Request(), ctx.Response())
 	sessionData := session.Get(authUserSessionKey)
 	return sessionData.(AuthUser)
+}
+
+func (auth *Authentication) Login(ctx Context, user Authenticable) error {
+	session := auth.app.getSession(ctx.Request(), ctx.Response())
+	session.Set(authUserSessionKey, user)
+	return session.Save()
 }
 
 func (auth *Authentication) GetAuthorizationUri(ctx Context) string {
