@@ -137,3 +137,7 @@ func (r RouteConfig) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 }
+
+func (r Router) Redirect(ctx Context, url string) {
+	http.Redirect(ctx.Response(), ctx.Request(), url, 302)
+}
