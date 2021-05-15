@@ -89,7 +89,11 @@ func (auth *Authentication) GetAuthUser(ctx Context) AuthUser {
 
 func (auth *Authentication) Login(ctx Context, user Authenticable) error {
 	session := auth.app.getSession(ctx.Request(), ctx.Response())
-	session.Set(authUserSessionKey, user)
+	session.Set(authUserSessionKey, AuthUser{
+		ID:   user.GetAuthID(),
+		Type: user.GetAuthType(),
+		Data: user.GetAuthData(),
+	})
 	return session.Save()
 }
 
