@@ -33,6 +33,7 @@ type DatabaseConfig struct {
 	User     string `json:"user"`
 	Password string `json:"password"`
 	Database string `json:"database"`
+	SSLMode  string `json:"SSLMode"`
 }
 
 func (c DatabaseConfig) DSN() string {
@@ -40,9 +41,9 @@ func (c DatabaseConfig) DSN() string {
 	maxConIdle, _ := time.ParseDuration("15 minutes")
 	health, _ := time.ParseDuration("1 minute")
 	return fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=require"+
+		"password=%s dbname=%s sslmode=%s "+
 		"pool_max_conns=10 pool_min_conns=0 pool_max_conn_lifetime=%v pool_max_conn_idle_time=%v pool_health_check_period=%v",
-		c.Host, c.Port, c.User, c.Password, c.Database, maxConLife, maxConIdle, health)
+		c.Host, c.Port, c.User, c.Password, c.Database, c.SSLMode, maxConLife, maxConIdle, health)
 }
 
 type ViewConfig struct {
