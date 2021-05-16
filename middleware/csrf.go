@@ -3,12 +3,13 @@ package middleware
 import (
 	"crypto/subtle"
 	"errors"
+	"fmt"
+	"github.com/gorilla/sessions"
 	"github.com/zengineDev/dojo"
 	"github.com/zengineDev/dojo/errorsx"
 	"github.com/zengineDev/dojo/helpers"
 	"net/http"
 	"strings"
-	"time"
 )
 
 type (
@@ -47,6 +48,9 @@ func CSRF() dojo.MiddlewareFunc {
 
 func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 
+	cookieStore := sessions.NewCookieStore([]byte("secret"))
+	cookieStore.Options.HttpOnly = true
+
 	// Initialize
 	parts := strings.Split(config.TokenLookup, ":")
 	extractor := csrfTokenFromHeader(parts[1])
@@ -60,7 +64,7 @@ func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 	return func(next dojo.Handler) dojo.Handler {
 		return func(context dojo.Context, application *dojo.Application) error {
 
-			k, err := context.Cookies().Get(config.CookieName)
+			session, err := cookieStore.Get(context.Request(), config.CookieName)
 			token := ""
 
 			// Generate token
@@ -68,7 +72,7 @@ func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 				token = helpers.RandomString(int(config.TokenLength))
 			} else {
 				// Reuse token
-				token = k
+				token = fmt.Sprintf("%s", session.Values["value"])
 			}
 
 			switch context.Request().Method {
@@ -84,7 +88,11 @@ func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 			}
 
 			// Set CSRF in cookie
-			context.Cookies().Set(config.CookieName, token, time.Duration(config.CookieMaxAge)*time.Second)
+			session.Values["value"] = token
+			err = session.Save(context.Request(), context.Response())
+			if err != nil {
+				return errorsx.BadRequest(err)
+			}
 			context.Set(config.ContextKey, token)
 
 			context.Response().Header().Set(dojo.HeaderVary, dojo.HeaderCookie)
