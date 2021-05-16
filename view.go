@@ -39,6 +39,11 @@ func (app Application) View(ctx Context, viewName string, data ViewAdditionalDat
 		return err
 	}
 
+	ts, err = ts.ParseGlob(filepath.Join(fmt.Sprintf("%s/**/*.gohtml", app.Configuration.View.Path)))
+	if err != nil {
+		return err
+	}
+
 	// TODO merge all data from the context to the view
 	user := app.Auth.GetAuthUser(ctx)
 	viewData := ViewData{
