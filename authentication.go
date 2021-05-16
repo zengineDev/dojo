@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/base64"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
@@ -80,6 +81,7 @@ type Authentication struct {
 }
 
 func NewAuthentication(app *Application) *Authentication {
+	gob.Register(AuthUser{})
 	return &Authentication{app: app}
 }
 
