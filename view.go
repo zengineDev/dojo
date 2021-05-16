@@ -39,7 +39,7 @@ func (app Application) View(ctx Context, viewName string, data ViewAdditionalDat
 		return err
 	}
 
-	ts, err = ts.ParseGlob(filepath.Join(fmt.Sprintf("%s/**/*.gohtml", app.Configuration.View.Path)))
+	ts, err = ts.ParseGlob(filepath.Join(fmt.Sprintf("%s/components/*.gohtml", app.Configuration.View.Path)))
 	if err != nil {
 		return err
 	}
