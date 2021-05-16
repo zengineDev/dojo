@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/Masterminds/formenc/encoding/form"
 	"github.com/golang/gddo/httputil/header"
+	"github.com/tomasen/realip"
 	"io"
 	"net/http"
 	"net/url"
@@ -68,6 +69,10 @@ func (d *DefaultContext) Flash() *Flash {
 
 func (d *DefaultContext) Param(key string) string {
 	return d.Params().Get(key)
+}
+
+func (d DefaultContext) RealIP() string {
+	return realip.FromRequest(d.Request())
 }
 
 func (d *DefaultContext) Bind(dst interface{}) error {

@@ -19,6 +19,7 @@ type Context interface {
 	Set(string, interface{})
 	Bind(interface{}) error
 	Data() map[string]interface{}
+	RealIP() string
 }
 
 type ParamValues interface {
@@ -48,11 +49,11 @@ func (app Application) NewContext(rc RouteConfig, w http.ResponseWriter, r *http
 	data := &sync.Map{}
 
 	data.Store("app", app)
-	// data.Store("env", a.Env)
+	data.Store("env", app.Configuration.App.Environment)
 	// data.Store("routes", app.Routes())
 	data.Store("current_route", rc)
 	data.Store("current_path", r.URL.Path)
-	// data.Store("contentType", ct)
+	//data.Store("contentType", ct)
 	data.Store("method", r.Method)
 
 	return &DefaultContext{
