@@ -54,6 +54,7 @@ type Authenticable interface {
 	GetAuthType() AuthUserType
 	GetAuthID() uuid.UUID
 	GetAuthData() interface{}
+	IsGuest() bool
 }
 
 type AuthUser struct {
@@ -76,12 +77,17 @@ func (u *AuthUser) GetAuthData() interface{} {
 	return u.Data
 }
 
+func (u *AuthUser) IsGuest() bool {
+	return u.GetAuthType() == GuestUserType
+}
+
 type Authentication struct {
 	app *Application
 }
 
 func NewAuthentication(app *Application) *Authentication {
 	gob.Register(AuthUser{})
+	gob.Register(map[string]interface{}{})
 	return &Authentication{app: app}
 }
 
