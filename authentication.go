@@ -57,12 +57,14 @@ type Authenticable interface {
 
 type AuthUser struct {
 	ID   uuid.UUID
-	Type AuthUserType
 	Data interface{}
 }
 
 func (u *AuthUser) GetAuthType() AuthUserType {
-	return u.Type
+	if u.ID == uuid.Nil {
+		return GuestUserType
+	}
+	return UserUserType
 }
 
 func (u *AuthUser) GetAuthID() uuid.UUID {
@@ -84,6 +86,12 @@ func NewAuthentication(app *Application) *Authentication {
 func (auth *Authentication) GetAuthUser(ctx Context) AuthUser {
 	session := auth.app.getSession(ctx.Request(), ctx.Response())
 	sessionData := session.Get(authUserSessionKey)
+	if sessionData == nil {
+		return AuthUser{
+			ID:   uuid.Nil,
+			Data: nil,
+		}
+	}
 	return sessionData.(AuthUser)
 }
 
@@ -91,7 +99,6 @@ func (auth *Authentication) Login(ctx Context, user Authenticable) error {
 	session := auth.app.getSession(ctx.Request(), ctx.Response())
 	session.Set(authUserSessionKey, AuthUser{
 		ID:   user.GetAuthID(),
-		Type: user.GetAuthType(),
 		Data: user.GetAuthData(),
 	})
 	return session.Save()
