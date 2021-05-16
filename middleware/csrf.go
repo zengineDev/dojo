@@ -76,7 +76,7 @@ func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 			default:
 				clientToken, err := extractor(context)
 				if err != nil {
-					return errorsx.BadRequestWithBody(err.Error())
+					return errorsx.BadRequest(err)
 				}
 				if !validateCSRFToken(token, clientToken) {
 					return errorsx.ForbiddenWithBody("invalid csrf token")
