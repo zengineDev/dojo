@@ -12,12 +12,12 @@ type ForbiddenError struct {
 	body interface{}
 }
 
-func Forbidden(err error) *BadRequestError {
-	return &BadRequestError{err: err}
+func Forbidden(err error) *ForbiddenError {
+	return &ForbiddenError{err: err}
 }
 
-func ForbiddenWithBody(body interface{}) *BadRequestError {
-	return &BadRequestError{body: body}
+func ForbiddenWithBody(body interface{}) *ForbiddenError {
+	return &ForbiddenError{body: body}
 }
 
 func (e *ForbiddenError) RespondError(ctx dojo.Context, app *dojo.Application) bool {
