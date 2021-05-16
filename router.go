@@ -129,7 +129,7 @@ func (r RouteConfig) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		//	status = he.Status
 		//}
 		// things have really hit the fan if we're here!!
-		//a.Logger.Error(err)
+		app.Logger.Error(err)
 		c.Response().WriteHeader(status)
 		_, err = c.Response().Write([]byte(err.Error()))
 		if err != nil {

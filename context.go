@@ -16,6 +16,7 @@ type Context interface {
 	Cookies() *Cookies
 	Params() ParamValues
 	Param(string) string
+	Set(string, interface{})
 	Bind(interface{}) error
 	Data() map[string]interface{}
 }
