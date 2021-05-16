@@ -14,10 +14,19 @@ type ViewData struct {
 	Data   map[string]interface{}
 }
 
-// TODO move this in the app so it is
-var functions = template.FuncMap{}
+func csrfValue(ctx Context) func() string {
+	return func() string {
+		// TODO make the key readable from a configuration
+		return fmt.Sprintf("%s", ctx.Value("csrf"))
+	}
+}
 
 func (app Application) View(ctx Context, viewName string, data ViewAdditionalData) error {
+
+	var functions = template.FuncMap{
+		"csrf": csrfValue(ctx),
+	}
+
 	name := filepath.Base(fmt.Sprintf("%s/%s.gohtml", app.Configuration.View.Path, viewName))
 	ts, err := template.New(name).Funcs(functions).ParseFiles(fmt.Sprintf("%s/%s.gohtml", app.Configuration.View.Path, viewName))
 	if err != nil {

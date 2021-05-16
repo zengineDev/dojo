@@ -112,6 +112,15 @@ func (auth *Authentication) Login(ctx Context, user Authenticable) error {
 	return session.Save()
 }
 
+func (auth *Authentication) Logout(ctx Context) error {
+	session := auth.app.getSession(ctx.Request(), ctx.Response())
+	session.Clear()
+	session.Set(authUserSessionKey, AuthUser{
+		ID: uuid.Nil,
+	})
+	return session.Save()
+}
+
 func (auth *Authentication) GetAuthorizationUri(ctx Context) string {
 	cfg := auth.app.Configuration.Auth
 	state := helpers.RandomString(16)
