@@ -11,6 +11,14 @@ type Session struct {
 	res     http.ResponseWriter
 }
 
+func (s *Session) Flash(key string, value interface{}) {
+	s.Session.AddFlash(value, key)
+}
+
+func (s *Session) GetFlash(key string) []interface{} {
+	return s.Session.Flashes(key)
+}
+
 func (s *Session) Save() error {
 	return s.Session.Save(s.req, s.res)
 }

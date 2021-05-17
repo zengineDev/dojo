@@ -40,12 +40,24 @@ func route(app *Application) func(name string, args ...string) string {
 	}
 }
 
+func flash(ctx Context) func(key string) interface{} {
+	s := ctx.Session()
+	return func(key string) interface{} {
+		m := s.GetFlash(key)
+		if m == nil {
+			return ""
+		}
+		return m[0]
+	}
+}
+
 func (app *Application) View(ctx Context, viewName string, data ViewAdditionalData) error {
 
 	var functions = template.FuncMap{
 		"csrf":        csrfValue(ctx),
 		"activeRoute": activeRoute(ctx),
 		"route":       route(app),
+		"flash":       flash(ctx),
 	}
 
 	name := filepath.Base(fmt.Sprintf("%s/%s.gohtml", app.Configuration.View.Path, viewName))

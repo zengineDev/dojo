@@ -20,7 +20,6 @@ type DefaultContext struct {
 	request  *http.Request
 	params   url.Values
 	session  *Session
-	flash    *Flash
 	data     *sync.Map
 }
 
@@ -59,11 +58,6 @@ func (d *DefaultContext) Session() *Session {
 // Cookies for the associated request and response.
 func (d *DefaultContext) Cookies() *Cookies {
 	return &Cookies{d.request, d.response}
-}
-
-// Flash messages for the associated Request.
-func (d *DefaultContext) Flash() *Flash {
-	return d.flash
 }
 
 func (d *DefaultContext) Param(key string) string {

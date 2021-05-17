@@ -13,7 +13,6 @@ type Context interface {
 	Response() http.ResponseWriter
 	Request() *http.Request
 	Session() *Session
-	Flash() *Flash
 	Cookies() *Cookies
 	Params() ParamValues
 	Param(string) string
@@ -63,7 +62,6 @@ func (app Application) NewContext(rc RouteConfig, w http.ResponseWriter, r *http
 		response: w,
 		request:  r,
 		params:   params,
-		flash:    newFlash(session),
 		data:     data,
 	}
 }
