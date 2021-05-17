@@ -35,16 +35,32 @@ func (r *Router) Get(path string, handler Handler) {
 	r.addRoute(http.MethodGet, path, handler)
 }
 
+func (r *Router) GetWithName(path string, name string, handler Handler) {
+	r.addNamedRoute(http.MethodGet, path, name, handler)
+}
+
 func (r *Router) Post(path string, handler Handler) {
 	r.addRoute(http.MethodPost, path, handler)
+}
+
+func (r *Router) PostWithName(path string, name string, handler Handler) {
+	r.addNamedRoute(http.MethodPost, path, name, handler)
 }
 
 func (r *Router) Put(path string, handler Handler) {
 	r.addRoute(http.MethodPut, path, handler)
 }
 
+func (r *Router) PutWithName(path string, name string, handler Handler) {
+	r.addNamedRoute(http.MethodPut, path, name, handler)
+}
+
 func (r *Router) Patch(path string, handler Handler) {
 	r.addRoute(http.MethodPatch, path, handler)
+}
+
+func (r *Router) PatchWithName(path string, name string, handler Handler) {
+	r.addNamedRoute(http.MethodPatch, path, name, handler)
 }
 
 func (r *Router) Options(path string, handler Handler) {
@@ -53,6 +69,10 @@ func (r *Router) Options(path string, handler Handler) {
 
 func (r *Router) Delete(path string, handler Handler) {
 	r.addRoute(http.MethodDelete, path, handler)
+}
+
+func (r *Router) DeleteWithName(path string, name string, handler Handler) {
+	r.addNamedRoute(http.MethodDelete, path, name, handler)
 }
 
 func (r *Router) Trace(path string, handler Handler) {
@@ -72,9 +92,7 @@ func (r *Router) RouteGroup(prefix string, cb func(router *Router)) {
 	})
 }
 
-func (r *Router) addRoute(method string, url string, h Handler) {
-
-	// get all registered middlewares
+func (r *Router) getRouteConfig(method string, url string, h Handler) RouteConfig {
 	mws := MiddlewareStack{}
 	app := r.app
 
@@ -86,7 +104,7 @@ func (r *Router) addRoute(method string, url string, h Handler) {
 		mws.Use(mw.Handler)
 	}
 
-	config := &RouteConfig{
+	return RouteConfig{
 		Method: method,
 		Path:   url,
 		// HandlerName: hs,
@@ -95,7 +113,15 @@ func (r *Router) addRoute(method string, url string, h Handler) {
 		Aliases:     []string{},
 		Middlewares: mws,
 	}
+}
 
+func (r *Router) addNamedRoute(method string, url string, name string, h Handler) {
+	config := r.getRouteConfig(method, url, h)
+	config.MuxRoute = r.router.Handle(url, config).Methods(method).Name(name)
+}
+
+func (r *Router) addRoute(method string, url string, h Handler) {
+	config := r.getRouteConfig(method, url, h)
 	config.MuxRoute = r.router.Handle(url, config).Methods(method)
 }
 
@@ -125,9 +151,9 @@ func (r RouteConfig) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		status := http.StatusInternalServerError
-		//if he, ok := err.(HTTPError); ok {
+		// if he, ok := err.(HTTPError); ok {
 		//	status = he.Status
-		//}
+		// }
 		// things have really hit the fan if we're here!!
 		app.Logger.Error(err)
 		c.Response().WriteHeader(status)

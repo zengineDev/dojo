@@ -2,6 +2,7 @@ package dojo
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"html/template"
 	"path/filepath"
 )
@@ -21,10 +22,30 @@ func csrfValue(ctx Context) func() string {
 	}
 }
 
-func (app Application) View(ctx Context, viewName string, data ViewAdditionalData) error {
+func activeRoute(ctx Context) func(route string) bool {
+	return func(route string) bool {
+		return mux.CurrentRoute(ctx.Request()).GetName() == route
+	}
+}
+
+func route(app *Application) func(name string, args ...string) string {
+	muxRouter := app.Route.GetMux()
+	return func(name string, args ...string) string {
+		url, err := muxRouter.Get(name).URL(args...)
+		if err != nil {
+			app.Logger.Error(err)
+			return ""
+		}
+		return url.String()
+	}
+}
+
+func (app *Application) View(ctx Context, viewName string, data ViewAdditionalData) error {
 
 	var functions = template.FuncMap{
-		"csrf": csrfValue(ctx),
+		"csrf":        csrfValue(ctx),
+		"activeRoute": activeRoute(ctx),
+		"route":       route(app),
 	}
 
 	name := filepath.Base(fmt.Sprintf("%s/%s.gohtml", app.Configuration.View.Path, viewName))
