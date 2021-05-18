@@ -1,6 +1,7 @@
 package dojo
 
 import (
+	"fmt"
 	"github.com/gorilla/sessions"
 	"net/http"
 )
@@ -18,12 +19,14 @@ func (s *Session) WithOld(data map[string]interface{}) {
 
 func (s *Session) Flash(key string, value interface{}) {
 	s.Session.AddFlash(value, key)
-	_ = s.Save()
+	err := s.Save()
+	fmt.Println(err)
 }
 
 func (s *Session) GetFlash(key string) []interface{} {
 	m := s.Session.Flashes(key)
-	_ = s.Save()
+	err := s.Save()
+	fmt.Println(err)
 	return m
 }
 
