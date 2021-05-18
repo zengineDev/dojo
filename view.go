@@ -40,15 +40,12 @@ func route(app *Application) func(name string, args ...string) string {
 	}
 }
 
-func flash(ctx Context) func(key string) interface{} {
-	s := ctx.Session()
-	return func(key string) interface{} {
-		m := s.GetFlash(key)
-		if m == nil {
-			return ""
-		}
-		return m[0]
-	}
+func flash(ctx Context) *Flash {
+	return NewFlash(ctx)
+}
+
+func old(ctx Context) *Old {
+	return NewOld(ctx)
 }
 
 func (app *Application) View(ctx Context, viewName string, data ViewAdditionalData) error {
@@ -58,6 +55,7 @@ func (app *Application) View(ctx Context, viewName string, data ViewAdditionalDa
 		"activeRoute": activeRoute(ctx),
 		"route":       route(app),
 		"flash":       flash(ctx),
+		"old":         old(ctx),
 	}
 
 	name := filepath.Base(fmt.Sprintf("%s/%s.gohtml", app.Configuration.View.Path, viewName))
@@ -77,7 +75,6 @@ func (app *Application) View(ctx Context, viewName string, data ViewAdditionalDa
 		return err
 	}
 
-	// TODO merge all data from the context to the view
 	user := app.Auth.GetAuthUser(ctx)
 	viewData := ViewData{
 		Assets: app.Assets(),

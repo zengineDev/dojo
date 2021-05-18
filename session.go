@@ -11,12 +11,20 @@ type Session struct {
 	res     http.ResponseWriter
 }
 
+func (s *Session) WithOld(data map[string]interface{}) {
+	s.Session.AddFlash(data, FlashOldKey)
+	_ = s.Save()
+}
+
 func (s *Session) Flash(key string, value interface{}) {
 	s.Session.AddFlash(value, key)
+	_ = s.Save()
 }
 
 func (s *Session) GetFlash(key string) []interface{} {
-	return s.Session.Flashes(key)
+	m := s.Session.Flashes(key)
+	_ = s.Save()
+	return m
 }
 
 func (s *Session) Save() error {
