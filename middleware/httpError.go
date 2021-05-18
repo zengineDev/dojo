@@ -9,10 +9,6 @@ type (
 	HttpErrorConfig struct {
 		Reporter ErrorReporter
 	}
-
-	ErrorResponder interface {
-		RespondError(ctx dojo.Context, application *dojo.Application) bool
-	}
 )
 
 var (
@@ -30,17 +26,18 @@ func HttpErrorWithConfig(config HttpErrorConfig) dojo.MiddlewareFunc {
 	return func(handler dojo.Handler) dojo.Handler {
 		return func(context dojo.Context, application *dojo.Application) error {
 			if err := handler(context, application); err != nil {
-				if er, ok := err.(ErrorResponder); ok {
-					if er.RespondError(context, application) {
-						return nil
-					}
-				}
+
+				application.Logger.Error(err)
+				// TODO handle the errors here
 				http.Error(context.Response(), "Internal server error", 500)
 
+				// Give the error to the reporter
 				reporterErr := config.Reporter(context, err)
 				if reporterErr != nil {
 					return reporterErr
 				}
+
+				return err
 			}
 			return nil
 		}

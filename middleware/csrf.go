@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/zengineDev/dojo"
-	"github.com/zengineDev/dojo/errorsx"
 	"github.com/zengineDev/dojo/helpers"
 	"net/http"
 	"strings"
@@ -80,10 +79,10 @@ func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 			default:
 				clientToken, err := extractor(context)
 				if err != nil {
-					return errorsx.BadRequest(err)
+					return err
 				}
 				if !validateCSRFToken(token, clientToken) {
-					return errorsx.ForbiddenWithBody("invalid csrf token")
+					return dojo.NewHTTPError(http.StatusUnauthorized, "invalid csrf token")
 				}
 			}
 
@@ -91,7 +90,7 @@ func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 			session.Values["value"] = token
 			err = session.Save(context.Request(), context.Response())
 			if err != nil {
-				return errorsx.BadRequest(err)
+				return dojo.NewHTTPError(http.StatusBadRequest, "session save error")
 			}
 			context.Set(config.ContextKey, token)
 

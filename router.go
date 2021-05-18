@@ -151,9 +151,9 @@ func (r RouteConfig) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		status := http.StatusInternalServerError
-		// if he, ok := err.(HTTPError); ok {
-		//	status = he.Status
-		// }
+		if he, ok := err.(*HTTPError); ok {
+			status = he.Code
+		}
 		// things have really hit the fan if we're here!!
 		app.Logger.Error(err)
 		c.Response().WriteHeader(status)
