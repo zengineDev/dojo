@@ -13,6 +13,8 @@ type ViewData struct {
 	Assets []Asset
 	User   Authenticable
 	Data   map[string]interface{}
+	Flash  *Flash
+	Old    *Old
 }
 
 func csrfValue(ctx Context) func() string {
@@ -40,22 +42,12 @@ func route(app *Application) func(name string, args ...string) string {
 	}
 }
 
-func flash(ctx Context) *Flash {
-	return NewFlash(ctx)
-}
-
-func old(ctx Context) *Old {
-	return NewOld(ctx)
-}
-
 func (app *Application) View(ctx Context, viewName string, data ViewAdditionalData) error {
 
 	var functions = template.FuncMap{
 		"csrf":        csrfValue(ctx),
 		"activeRoute": activeRoute(ctx),
 		"route":       route(app),
-		"flash":       flash(ctx),
-		"old":         old(ctx),
 	}
 
 	name := filepath.Base(fmt.Sprintf("%s/%s.gohtml", app.Configuration.View.Path, viewName))
@@ -80,6 +72,8 @@ func (app *Application) View(ctx Context, viewName string, data ViewAdditionalDa
 		Assets: app.Assets(),
 		User:   &user,
 		Data:   data,
+		Flash:  NewFlash(ctx),
+		Old:    NewOld(ctx),
 	}
 
 	err = ts.Execute(ctx.Response(), viewData)
