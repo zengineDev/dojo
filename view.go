@@ -2,6 +2,7 @@ package dojo
 
 import (
 	"fmt"
+	"github.com/Masterminds/sprig"
 	"github.com/gorilla/mux"
 	"html/template"
 	"path/filepath"
@@ -42,11 +43,10 @@ func route(app *Application) func(name string, args ...string) string {
 
 func (app *Application) View(ctx Context, viewName string, data ViewAdditionalData) error {
 
-	var functions = template.FuncMap{
-		"csrf":        csrfValue(ctx),
-		"activeRoute": activeRoute(ctx),
-		"route":       route(app),
-	}
+	var functions = sprig.FuncMap()
+	functions["csrf"] = csrfValue(ctx)
+	functions["activeRoute"] = activeRoute(ctx)
+	functions["route"] = route(app)
 
 	name := filepath.Base(fmt.Sprintf("%s/%s.gohtml", app.Configuration.View.Path, viewName))
 	ts, err := template.New(name).Funcs(functions).ParseFiles(fmt.Sprintf("%s/%s.gohtml", app.Configuration.View.Path, viewName))
