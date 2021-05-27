@@ -145,11 +145,11 @@ type OAuthResult struct {
 }
 
 type ExchangeAuthorisationCodeRequest struct {
-	GrantType    string
-	ClientId     string
-	ClientSecret string
-	RedirectUri  string
-	Code         string
+	GrantType    string `json:"grant_type"`
+	ClientId     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	RedirectUri  string `json:"redirect_uri"`
+	Code         string `json:"code"`
 }
 
 func (auth Authentication) CompareOAuthState(ctx Context, state string) error {
