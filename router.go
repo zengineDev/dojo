@@ -145,7 +145,7 @@ func (r RouteConfig) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	c := app.NewContext(r, res, req)
 	err := r.Middlewares.handler(r)(c)
 	if err != nil {
-		app.DefaultHTTPErrorHandler(err, c)
+		app.HTTPErrorHandler(err, c)
 	}
 }
 
