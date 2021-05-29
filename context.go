@@ -19,6 +19,7 @@ type Context interface {
 	Data() map[string]interface{}
 	JSON(code int, data interface{}) error
 	NoContent(code int) error
+	View(view string, data ViewAdditionalData) error
 }
 
 type ParamValues interface {
