@@ -29,45 +29,45 @@ func activeRoute(ctx Context) func(route string) bool {
 	}
 }
 
-func route(app *Application) func(name string, args ...string) string {
-	muxRouter := app.Route.GetMux()
+func route(dojo *Dojo) func(name string, args ...string) string {
+	muxRouter := dojo.Route.GetMux()
 	return func(name string, args ...string) string {
 		url, err := muxRouter.Get(name).URL(args...)
 		if err != nil {
-			app.Logger.Error(err)
+			dojo.Logger.Error(err)
 			return ""
 		}
 		return url.String()
 	}
 }
 
-func (app *Application) View(ctx Context, viewName string, data ViewAdditionalData) error {
-
+func (ctx *DefaultContext) View(viewName string, data ViewAdditionalData) error {
+	d := ctx.dojo
 	var functions = sprig.FuncMap()
 	functions["csrf"] = csrfValue(ctx)
 	functions["activeRoute"] = activeRoute(ctx)
-	functions["route"] = route(app)
+	functions["route"] = route(d)
 
-	name := filepath.Base(fmt.Sprintf("%s/%s.gohtml", app.Configuration.View.Path, viewName))
-	ts, err := template.New(name).Funcs(functions).ParseFiles(fmt.Sprintf("%s/%s.gohtml", app.Configuration.View.Path, viewName))
+	name := filepath.Base(fmt.Sprintf("%s/%s.gohtml", d.Configuration.View.Path, viewName))
+	ts, err := template.New(name).Funcs(functions).ParseFiles(fmt.Sprintf("%s/%s.gohtml", d.Configuration.View.Path, viewName))
 	if err != nil {
 		return err
 	}
 
 	// Load the other templates
-	ts, err = ts.ParseGlob(filepath.Join(fmt.Sprintf("%s/layouts/*.gohtml", app.Configuration.View.Path)))
+	ts, err = ts.ParseGlob(filepath.Join(fmt.Sprintf("%s/layouts/*.gohtml", d.Configuration.View.Path)))
 	if err != nil {
 		return err
 	}
 
-	ts, err = ts.ParseGlob(filepath.Join(fmt.Sprintf("%s/components/*.gohtml", app.Configuration.View.Path)))
+	ts, err = ts.ParseGlob(filepath.Join(fmt.Sprintf("%s/components/*.gohtml", d.Configuration.View.Path)))
 	if err != nil {
 		return err
 	}
 
-	user := app.Auth.GetAuthUser(ctx)
+	user := d.Auth.GetAuthUser(ctx)
 	viewData := ViewData{
-		Assets: app.Assets(),
+		Assets: d.Assets(),
 		User:   &user,
 		Data:   data,
 	}

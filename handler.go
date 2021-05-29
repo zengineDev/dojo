@@ -1,3 +1,3 @@
 package dojo
 
-type Handler func(Context, *Application) error
+type Handler func(Context) error

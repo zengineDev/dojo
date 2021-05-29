@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/zengineDev/dojo"
-	"github.com/zengineDev/dojo/helpers"
+	"github.com/zengineDev/x/utilsx"
 	"net/http"
 	"strings"
 )
@@ -61,14 +61,14 @@ func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 	}
 
 	return func(next dojo.Handler) dojo.Handler {
-		return func(context dojo.Context, application *dojo.Application) error {
+		return func(context dojo.Context) error {
 
 			session, err := cookieStore.Get(context.Request(), config.CookieName)
 			token := ""
 
 			// Generate token
 			if err != nil {
-				token = helpers.RandomString(int(config.TokenLength))
+				token = utilsx.RandomString(int(config.TokenLength))
 			} else {
 				// Reuse token
 				token = fmt.Sprintf("%s", session.Values["value"])
@@ -96,7 +96,7 @@ func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 
 			context.Response().Header().Set(dojo.HeaderVary, dojo.HeaderCookie)
 
-			return next(context, application)
+			return next(context)
 		}
 	}
 }

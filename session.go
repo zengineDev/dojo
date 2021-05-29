@@ -59,12 +59,3 @@ func (s *Session) Clear() {
 		s.Delete(k)
 	}
 }
-
-func (app *Application) getSession(r *http.Request, w http.ResponseWriter) *Session {
-	session, _ := app.SessionStore.Get(r, app.Configuration.Session.Name)
-	return &Session{
-		Session: session,
-		req:     r,
-		res:     w,
-	}
-}

@@ -8,7 +8,7 @@ import (
 )
 
 func TestRouter_RouteGroup(t *testing.T) {
-	// Add an app
+	// Add an dojo
 	app := New(DefaultConfiguration{})
 	r := NewRouter(app)
 
@@ -30,7 +30,7 @@ func TestRouter_RouteGroup(t *testing.T) {
 }
 
 func TestRouter_RegisterMiddleware(t *testing.T) {
-	// Add an app
+	// Add an dojo
 	app := New(DefaultConfiguration{})
 	r := NewRouter(app)
 
