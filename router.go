@@ -31,56 +31,56 @@ func (r *Router) UseStack(name string) {
 	r.middlewares = append(r.middlewares, stack...)
 }
 
-func (r *Router) Get(path string, handler Handler) {
-	r.addRoute(http.MethodGet, path, handler)
+func (r *Router) Get(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodGet, path, handler, middlewares...)
 }
 
-func (r *Router) GetWithName(path string, name string, handler Handler) {
-	r.addNamedRoute(http.MethodGet, path, name, handler)
+func (r *Router) GetWithName(path string, name string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addNamedRoute(http.MethodGet, path, name, handler, middlewares...)
 }
 
-func (r *Router) Post(path string, handler Handler) {
-	r.addRoute(http.MethodPost, path, handler)
+func (r *Router) Post(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodPost, path, handler, middlewares...)
 }
 
-func (r *Router) PostWithName(path string, name string, handler Handler) {
-	r.addNamedRoute(http.MethodPost, path, name, handler)
+func (r *Router) PostWithName(path string, name string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addNamedRoute(http.MethodPost, path, name, handler, middlewares...)
 }
 
-func (r *Router) Put(path string, handler Handler) {
-	r.addRoute(http.MethodPut, path, handler)
+func (r *Router) Put(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodPut, path, handler, middlewares...)
 }
 
-func (r *Router) PutWithName(path string, name string, handler Handler) {
-	r.addNamedRoute(http.MethodPut, path, name, handler)
+func (r *Router) PutWithName(path string, name string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addNamedRoute(http.MethodPut, path, name, handler, middlewares...)
 }
 
-func (r *Router) Patch(path string, handler Handler) {
-	r.addRoute(http.MethodPatch, path, handler)
+func (r *Router) Patch(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodPatch, path, handler, middlewares...)
 }
 
-func (r *Router) PatchWithName(path string, name string, handler Handler) {
-	r.addNamedRoute(http.MethodPatch, path, name, handler)
+func (r *Router) PatchWithName(path string, name string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addNamedRoute(http.MethodPatch, path, name, handler, middlewares...)
 }
 
-func (r *Router) Options(path string, handler Handler) {
-	r.addRoute(http.MethodOptions, path, handler)
+func (r *Router) Options(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodOptions, path, handler, middlewares...)
 }
 
-func (r *Router) Delete(path string, handler Handler) {
-	r.addRoute(http.MethodDelete, path, handler)
+func (r *Router) Delete(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodDelete, path, handler, middlewares...)
 }
 
-func (r *Router) DeleteWithName(path string, name string, handler Handler) {
-	r.addNamedRoute(http.MethodDelete, path, name, handler)
+func (r *Router) DeleteWithName(path string, name string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addNamedRoute(http.MethodDelete, path, name, handler, middlewares...)
 }
 
-func (r *Router) Trace(path string, handler Handler) {
-	r.addRoute(http.MethodTrace, path, handler)
+func (r *Router) Trace(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodTrace, path, handler, middlewares...)
 }
 
-func (r *Router) Connect(path string, handler Handler) {
-	r.addRoute(http.MethodConnect, path, handler)
+func (r *Router) Connect(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodConnect, path, handler, middlewares...)
 }
 
 func (r *Router) RouteGroup(prefix string, cb func(router *Router)) {
@@ -115,13 +115,15 @@ func (r *Router) getRouteConfig(method string, url string, h Handler) RouteConfi
 	}
 }
 
-func (r *Router) addNamedRoute(method string, url string, name string, h Handler) {
+func (r *Router) addNamedRoute(method string, url string, name string, h Handler, middlewares ...MiddlewareFunc) {
 	config := r.getRouteConfig(method, url, h)
+	config.Middlewares.Use(middlewares...)
 	config.MuxRoute = r.router.Handle(url, config).Methods(method).Name(name)
 }
 
-func (r *Router) addRoute(method string, url string, h Handler) {
+func (r *Router) addRoute(method string, url string, h Handler, middlewares ...MiddlewareFunc) {
 	config := r.getRouteConfig(method, url, h)
+	config.Middlewares.Use(middlewares...)
 	config.MuxRoute = r.router.Handle(url, config).Methods(method)
 }
 
