@@ -20,20 +20,21 @@ const (
 )
 
 type AppConfig struct {
-	Name        string      `json:"name"`
-	Version     string      `json:"version"`
-	Port        int         `json:"port"`
-	Environment Environment `json:"environment"`
-	Domain      string      `json:"domain"`
+	Name        string      `json:"name" yaml:"name"`
+	Version     string      `json:"version" yaml:"version"`
+	Port        int         `json:"port" yaml:"port"`
+	Environment Environment `json:"environment" yaml:"environment"`
+	Domain      string      `json:"domain" yaml:"domain"`
+	Debug       bool        `json:"debug" yaml:"debug"`
 }
 
 type DatabaseConfig struct {
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Database string `json:"database"`
-	SSLMode  string `json:"sslMode"`
+	Host     string `json:"host" yaml:"host"`
+	Port     int    `json:"port" yaml:"port"`
+	User     string `json:"user" yaml:"user"`
+	Password string `json:"password" yaml:"password"`
+	Database string `json:"database" yaml:"database"`
+	SSLMode  string `json:"ssl_mode" yaml:"ssl_mode"`
 }
 
 func (c DatabaseConfig) DSN() string {
@@ -47,16 +48,16 @@ func (c DatabaseConfig) DSN() string {
 }
 
 type ViewConfig struct {
-	Path string `json:"path"`
+	Path string `json:"path" yaml:"path"`
 }
 
 type AssetsConfigs struct {
-	Path string `json:"path"`
+	Path string `json:"path" yaml:"path"`
 }
 
 type SessionConfig struct {
-	Name   string `json:"name"`
-	Secret string `json:"secret"`
+	Name   string `json:"name" yaml:"name"`
+	Secret string `json:"secret" yaml:"secret"`
 }
 
 type AuthenticationProvider string
@@ -71,20 +72,20 @@ type AuthenticationConfig struct {
 	// The Configuration for the database provider
 	Table string `json:"table"`
 	// The Configuration for the oauth provider
-	Endpoint     string   `json:"endpoint"`
-	ClientID     string   `json:"clientId"`
-	ClientSecret string   `json:"clientSecret"`
-	Scopes       []string `json:"scopes"`
-	RedirectPath string   `json:"redirectPath"`
+	Endpoint     string   `json:"endpoint" yaml:"endpoint"`
+	ClientID     string   `json:"clientId" yaml:"client_id"`
+	ClientSecret string   `json:"clientSecret" yaml:"client_secret"`
+	Scopes       []string `json:"scopes" yaml:"scopes"`
+	RedirectPath string   `json:"redirectPath" yaml:"redirect_path"`
 }
 
 type DefaultConfiguration struct {
-	App     AppConfig            `yaml:"app"`
-	DB      DatabaseConfig       `yaml:"db"`
-	View    ViewConfig           `yaml:"view"`
-	Assets  AssetsConfigs        `yaml:"assets"`
-	Session SessionConfig        `yaml:"session"`
-	Auth    AuthenticationConfig `yaml:"auth"`
+	App     AppConfig            `json:"dojo" yaml:"dojo"`
+	DB      DatabaseConfig       `json:"db" yaml:"db"`
+	View    ViewConfig           `json:"view" yaml:"view"`
+	Assets  AssetsConfigs        `json:"assets" yaml:"assets"`
+	Session SessionConfig        `json:"session" yaml:"session"`
+	Auth    AuthenticationConfig `json:"auth" yaml:"auth"`
 }
 
 const defaultShutdownTimeoutSeconds = 15

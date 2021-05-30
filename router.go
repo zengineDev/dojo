@@ -8,13 +8,13 @@ import (
 type Router struct {
 	middlewares []string
 	router      *mux.Router
-	app         *Application
+	dojo        *Dojo
 }
 
-func NewRouter(app *Application) *Router {
+func NewRouter(dojo *Dojo) *Router {
 	r := mux.NewRouter()
 	r.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets/dist"))))
-	return &Router{router: r, app: app}
+	return &Router{router: r, dojo: dojo}
 }
 
 func (r *Router) GetMux() *mux.Router {
@@ -27,40 +27,60 @@ func (r *Router) Use(name string) {
 }
 
 func (r *Router) UseStack(name string) {
-	stack := r.app.MiddlewareRegistry.stacks[name]
+	stack := r.dojo.MiddlewareRegistry.stacks[name]
 	r.middlewares = append(r.middlewares, stack...)
 }
 
-func (r *Router) Get(path string, handler Handler) {
-	r.addRoute(http.MethodGet, path, handler)
+func (r *Router) Get(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodGet, path, handler, middlewares...)
 }
 
-func (r *Router) Post(path string, handler Handler) {
-	r.addRoute(http.MethodPost, path, handler)
+func (r *Router) GetWithName(path string, name string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addNamedRoute(http.MethodGet, path, name, handler, middlewares...)
 }
 
-func (r *Router) Put(path string, handler Handler) {
-	r.addRoute(http.MethodPut, path, handler)
+func (r *Router) Post(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodPost, path, handler, middlewares...)
 }
 
-func (r *Router) Patch(path string, handler Handler) {
-	r.addRoute(http.MethodPatch, path, handler)
+func (r *Router) PostWithName(path string, name string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addNamedRoute(http.MethodPost, path, name, handler, middlewares...)
 }
 
-func (r *Router) Options(path string, handler Handler) {
-	r.addRoute(http.MethodOptions, path, handler)
+func (r *Router) Put(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodPut, path, handler, middlewares...)
 }
 
-func (r *Router) Delete(path string, handler Handler) {
-	r.addRoute(http.MethodDelete, path, handler)
+func (r *Router) PutWithName(path string, name string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addNamedRoute(http.MethodPut, path, name, handler, middlewares...)
 }
 
-func (r *Router) Trace(path string, handler Handler) {
-	r.addRoute(http.MethodTrace, path, handler)
+func (r *Router) Patch(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodPatch, path, handler, middlewares...)
 }
 
-func (r *Router) Connect(path string, handler Handler) {
-	r.addRoute(http.MethodConnect, path, handler)
+func (r *Router) PatchWithName(path string, name string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addNamedRoute(http.MethodPatch, path, name, handler, middlewares...)
+}
+
+func (r *Router) Options(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodOptions, path, handler, middlewares...)
+}
+
+func (r *Router) Delete(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodDelete, path, handler, middlewares...)
+}
+
+func (r *Router) DeleteWithName(path string, name string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addNamedRoute(http.MethodDelete, path, name, handler, middlewares...)
+}
+
+func (r *Router) Trace(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodTrace, path, handler, middlewares...)
+}
+
+func (r *Router) Connect(path string, handler Handler, middlewares ...MiddlewareFunc) {
+	r.addRoute(http.MethodConnect, path, handler, middlewares...)
 }
 
 func (r *Router) RouteGroup(prefix string, cb func(router *Router)) {
@@ -68,15 +88,13 @@ func (r *Router) RouteGroup(prefix string, cb func(router *Router)) {
 
 	cb(&Router{
 		router: subRouter,
-		app:    r.app,
+		dojo:   r.dojo,
 	})
 }
 
-func (r *Router) addRoute(method string, url string, h Handler) {
-
-	// get all registered middlewares
+func (r *Router) getRouteConfig(method string, url string, h Handler) RouteConfig {
 	mws := MiddlewareStack{}
-	app := r.app
+	app := r.dojo
 
 	for _, mName := range r.middlewares {
 		mw, err := app.MiddlewareRegistry.findMiddleware(mName)
@@ -86,16 +104,26 @@ func (r *Router) addRoute(method string, url string, h Handler) {
 		mws.Use(mw.Handler)
 	}
 
-	config := &RouteConfig{
+	return RouteConfig{
 		Method: method,
 		Path:   url,
 		// HandlerName: hs,
 		Handler:     h,
-		App:         r.app,
+		Dojo:        r.dojo,
 		Aliases:     []string{},
 		Middlewares: mws,
 	}
+}
 
+func (r *Router) addNamedRoute(method string, url string, name string, h Handler, middlewares ...MiddlewareFunc) {
+	config := r.getRouteConfig(method, url, h)
+	config.Middlewares.Use(middlewares...)
+	config.MuxRoute = r.router.Handle(url, config).Methods(method).Name(name)
+}
+
+func (r *Router) addRoute(method string, url string, h Handler, middlewares ...MiddlewareFunc) {
+	config := r.getRouteConfig(method, url, h)
+	config.Middlewares.Use(middlewares...)
 	config.MuxRoute = r.router.Handle(url, config).Methods(method)
 }
 
@@ -108,33 +136,16 @@ type RouteConfig struct {
 	Aliases      []string        `json:"aliases"`
 	MuxRoute     *mux.Route      `json:"-"`
 	Handler      Handler         `json:"-"`
-	App          *Application    `json:"-"`
+	Dojo         *Dojo           `json:"-"`
 	Middlewares  MiddlewareStack `json:"-"`
 }
 
 func (r RouteConfig) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	// in the route config are the middleware stack
-	// these are handler we want to call before we call the route handler
-
-	app := r.App
-
+	app := r.Dojo
 	c := app.NewContext(r, res, req)
-
-	// we have now
-	err := r.Middlewares.handler(r)(c, app)
-
+	err := r.Middlewares.handler(r)(c)
 	if err != nil {
-		status := http.StatusInternalServerError
-		//if he, ok := err.(HTTPError); ok {
-		//	status = he.Status
-		//}
-		// things have really hit the fan if we're here!!
-		app.Logger.Error(err)
-		c.Response().WriteHeader(status)
-		_, err = c.Response().Write([]byte(err.Error()))
-		if err != nil {
-			app.Logger.Error(err)
-		}
+		app.HTTPErrorHandler(err, c)
 	}
 }
 

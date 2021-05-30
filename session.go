@@ -1,6 +1,7 @@
 package dojo
 
 import (
+	"fmt"
 	"github.com/gorilla/sessions"
 	"net/http"
 )
@@ -9,6 +10,24 @@ type Session struct {
 	Session *sessions.Session
 	req     *http.Request
 	res     http.ResponseWriter
+}
+
+func (s *Session) WithOld(data map[string]interface{}) {
+	s.Session.AddFlash(data, FlashOldKey)
+	_ = s.Save()
+}
+
+func (s *Session) Flash(key string, value interface{}) {
+	s.Session.AddFlash(value, key)
+	err := s.Save()
+	fmt.Println(err)
+}
+
+func (s *Session) GetFlash(key string) []interface{} {
+	m := s.Session.Flashes(key)
+	err := s.Save()
+	fmt.Println(err)
+	return m
 }
 
 func (s *Session) Save() error {
@@ -38,14 +57,5 @@ func (s *Session) Delete(name interface{}) {
 func (s *Session) Clear() {
 	for k := range s.Session.Values {
 		s.Delete(k)
-	}
-}
-
-func (app *Application) getSession(r *http.Request, w http.ResponseWriter) *Session {
-	session, _ := app.SessionStore.Get(r, app.Configuration.Session.Name)
-	return &Session{
-		Session: session,
-		req:     r,
-		res:     w,
 	}
 }

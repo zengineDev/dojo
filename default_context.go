@@ -21,75 +21,74 @@ type DefaultContext struct {
 	request  *http.Request
 	params   url.Values
 	session  *Session
-	flash    *Flash
 	data     *sync.Map
+	dojo     *Dojo
+}
+
+func (ctx *DefaultContext) Dojo() *Dojo {
+	return ctx.dojo
 }
 
 // Response returns the original Response for the request.
-func (d *DefaultContext) Response() http.ResponseWriter {
-	return d.response
+func (ctx *DefaultContext) Response() http.ResponseWriter {
+	return ctx.response
 }
 
 // Request returns the original Request.
-func (d *DefaultContext) Request() *http.Request {
-	return d.request
+func (ctx *DefaultContext) Request() *http.Request {
+	return ctx.request
 }
 
-func (d *DefaultContext) Params() ParamValues {
-	return d.params
+func (ctx *DefaultContext) Params() ParamValues {
+	return ctx.params
 }
 
-func (d *DefaultContext) Set(key string, value interface{}) {
-	d.data.Store(key, value)
+func (ctx *DefaultContext) Set(key string, value interface{}) {
+	ctx.data.Store(key, value)
 }
 
 // Value that has previously stored on the context.
-func (d *DefaultContext) Value(key interface{}) interface{} {
+func (ctx *DefaultContext) Value(key interface{}) interface{} {
 	if k, ok := key.(string); ok {
-		if v, ok := d.data.Load(k); ok {
+		if v, ok := ctx.data.Load(k); ok {
 			return v
 		}
 	}
-	return d.Context.Value(key)
+	return ctx.Context.Value(key)
 }
 
-func (d *DefaultContext) Session() *Session {
-	return d.session
+func (ctx *DefaultContext) Session() *Session {
+	return ctx.session
 }
 
 // Cookies for the associated request and response.
-func (d *DefaultContext) Cookies() *Cookies {
-	return &Cookies{d.request, d.response}
+func (ctx *DefaultContext) Cookies() *Cookies {
+	return &Cookies{ctx.request, ctx.response}
 }
 
-// Flash messages for the associated Request.
-func (d *DefaultContext) Flash() *Flash {
-	return d.flash
+func (ctx *DefaultContext) Param(key string) string {
+	return ctx.Params().Get(key)
 }
 
-func (d *DefaultContext) Param(key string) string {
-	return d.Params().Get(key)
+func (ctx *DefaultContext) RealIP() string {
+	return realip.FromRequest(ctx.Request())
 }
 
-func (d DefaultContext) RealIP() string {
-	return realip.FromRequest(d.Request())
-}
-
-func (d *DefaultContext) Bind(dst interface{}) error {
-	if d.Request().Header.Get("Content-Type") != "" {
-		value, _ := header.ParseValueAndParams(d.Request().Header, "Content-Type")
+func (ctx *DefaultContext) Bind(dst interface{}) error {
+	if ctx.Request().Header.Get("Content-Type") != "" {
+		value, _ := header.ParseValueAndParams(ctx.Request().Header, "Content-Type")
 		if value == "application/json" {
-			return decodeJSONBody(d.Response(), d.Request(), dst)
+			return decodeJSONBody(ctx.Response(), ctx.Request(), dst)
 		} else {
-			return decodeFormData(d.Request(), dst)
+			return decodeFormData(ctx.Request(), dst)
 		}
 	}
 	return nil
 }
 
-func (d *DefaultContext) Data() map[string]interface{} {
+func (ctx *DefaultContext) Data() map[string]interface{} {
 	m := map[string]interface{}{}
-	d.data.Range(func(k, v interface{}) bool {
+	ctx.data.Range(func(k, v interface{}) bool {
 		s, ok := k.(string)
 		if !ok {
 			return false
@@ -172,5 +171,42 @@ func decodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) err
 		return &malformedRequest{status: http.StatusBadRequest, msg: msg}
 	}
 
+	return nil
+}
+
+func (ctx *DefaultContext) writeContentType(value string) {
+	headers := ctx.Response().Header()
+	if headers.Get(HeaderContentType) == "" {
+		headers.Set(HeaderContentType, value)
+	}
+}
+
+type JsonResponseBody struct {
+	Data interface{} `json:"data"`
+}
+
+func (ctx *DefaultContext) NoContent(code int) error {
+	ctx.response.WriteHeader(code)
+	_, err := ctx.Response().Write(nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ctx *DefaultContext) JSON(code int, data interface{}) error {
+	resBody := JsonResponseBody{
+		Data: data,
+	}
+	respData, err := json.Marshal(resBody)
+	if err != nil {
+		return err
+	}
+	ctx.writeContentType(MIMEApplicationJSONCharsetUTF8)
+	ctx.response.WriteHeader(code)
+	_, err = ctx.Response().Write(respData)
+	if err != nil {
+		return err
+	}
 	return nil
 }

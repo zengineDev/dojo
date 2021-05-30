@@ -32,12 +32,12 @@ func GuestWithConfig(config GuestConfig) dojo.MiddlewareFunc {
 	}
 
 	return func(next dojo.Handler) dojo.Handler {
-		return func(context dojo.Context, application *dojo.Application) error {
-			user := application.Auth.GetAuthUser(context)
+		return func(context dojo.Context) error {
+			user := context.Dojo().Auth.GetAuthUser(context)
 			if !user.IsGuest() {
 				http.Redirect(context.Response(), context.Request(), config.RedirectPath, http.StatusFound)
 			}
-			return next(context, application)
+			return next(context)
 		}
 	}
 }

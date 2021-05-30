@@ -2,6 +2,8 @@ package dojo
 
 import (
 	"fmt"
+	"github.com/Masterminds/sprig"
+	"github.com/gorilla/mux"
 	"html/template"
 	"path/filepath"
 )
@@ -21,33 +23,51 @@ func csrfValue(ctx Context) func() string {
 	}
 }
 
-func (app Application) View(ctx Context, viewName string, data ViewAdditionalData) error {
-
-	var functions = template.FuncMap{
-		"csrf": csrfValue(ctx),
+func activeRoute(ctx Context) func(route string) bool {
+	return func(route string) bool {
+		return mux.CurrentRoute(ctx.Request()).GetName() == route
 	}
+}
 
-	name := filepath.Base(fmt.Sprintf("%s/%s.gohtml", app.Configuration.View.Path, viewName))
-	ts, err := template.New(name).Funcs(functions).ParseFiles(fmt.Sprintf("%s/%s.gohtml", app.Configuration.View.Path, viewName))
+func route(dojo *Dojo) func(name string, args ...string) string {
+	muxRouter := dojo.Route.GetMux()
+	return func(name string, args ...string) string {
+		url, err := muxRouter.Get(name).URL(args...)
+		if err != nil {
+			dojo.Logger.Error(err)
+			return ""
+		}
+		return url.String()
+	}
+}
+
+func (ctx *DefaultContext) View(viewName string, data ViewAdditionalData) error {
+	d := ctx.dojo
+	var functions = sprig.FuncMap()
+	functions["csrf"] = csrfValue(ctx)
+	functions["activeRoute"] = activeRoute(ctx)
+	functions["route"] = route(d)
+
+	name := filepath.Base(fmt.Sprintf("%s/%s.gohtml", d.Configuration.View.Path, viewName))
+	ts, err := template.New(name).Funcs(functions).ParseFiles(fmt.Sprintf("%s/%s.gohtml", d.Configuration.View.Path, viewName))
 	if err != nil {
 		return err
 	}
 
 	// Load the other templates
-	ts, err = ts.ParseGlob(filepath.Join(fmt.Sprintf("%s/layouts/*.gohtml", app.Configuration.View.Path)))
+	ts, err = ts.ParseGlob(filepath.Join(fmt.Sprintf("%s/layouts/*.gohtml", d.Configuration.View.Path)))
 	if err != nil {
 		return err
 	}
 
-	ts, err = ts.ParseGlob(filepath.Join(fmt.Sprintf("%s/components/*.gohtml", app.Configuration.View.Path)))
+	ts, err = ts.ParseGlob(filepath.Join(fmt.Sprintf("%s/components/*.gohtml", d.Configuration.View.Path)))
 	if err != nil {
 		return err
 	}
 
-	// TODO merge all data from the context to the view
-	user := app.Auth.GetAuthUser(ctx)
+	user := d.Auth.GetAuthUser(ctx)
 	viewData := ViewData{
-		Assets: app.Assets(),
+		Assets: d.Assets(),
 		User:   &user,
 		Data:   data,
 	}

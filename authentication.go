@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/gofrs/uuid"
-	"github.com/zengineDev/dojo/helpers"
+	"github.com/zengineDev/x/utilsx"
 	"golang.org/x/crypto/argon2"
 	"strings"
 )
@@ -82,17 +82,17 @@ func (u *AuthUser) IsGuest() bool {
 }
 
 type Authentication struct {
-	app *Application
+	dojo *Dojo
 }
 
-func NewAuthentication(app *Application) *Authentication {
+func NewAuthentication(dojo *Dojo) *Authentication {
 	gob.Register(AuthUser{})
 	gob.Register(map[string]interface{}{})
-	return &Authentication{app: app}
+	return &Authentication{dojo: dojo}
 }
 
 func (auth *Authentication) GetAuthUser(ctx Context) AuthUser {
-	session := auth.app.getSession(ctx.Request(), ctx.Response())
+	session := auth.dojo.getSession(ctx.Request(), ctx.Response())
 	sessionData := session.Get(authUserSessionKey)
 	if sessionData == nil {
 		return AuthUser{
@@ -104,7 +104,7 @@ func (auth *Authentication) GetAuthUser(ctx Context) AuthUser {
 }
 
 func (auth *Authentication) Login(ctx Context, user Authenticable) error {
-	session := auth.app.getSession(ctx.Request(), ctx.Response())
+	session := auth.dojo.getSession(ctx.Request(), ctx.Response())
 	session.Set(authUserSessionKey, AuthUser{
 		ID:   user.GetAuthID(),
 		Data: user.GetAuthData(),
@@ -113,7 +113,7 @@ func (auth *Authentication) Login(ctx Context, user Authenticable) error {
 }
 
 func (auth *Authentication) Logout(ctx Context) error {
-	session := auth.app.getSession(ctx.Request(), ctx.Response())
+	session := auth.dojo.getSession(ctx.Request(), ctx.Response())
 	session.Clear()
 	session.Set(authUserSessionKey, AuthUser{
 		ID: uuid.Nil,
@@ -122,15 +122,15 @@ func (auth *Authentication) Logout(ctx Context) error {
 }
 
 func (auth *Authentication) GetAuthorizationUri(ctx Context) string {
-	cfg := auth.app.Configuration.Auth
-	state := helpers.RandomString(16)
-	session := auth.app.getSession(ctx.Request(), ctx.Response())
+	cfg := auth.dojo.Configuration.Auth
+	state := utilsx.RandomString(16)
+	session := auth.dojo.getSession(ctx.Request(), ctx.Response())
 	session.Set(oauthStateSessionKey, state)
 	return fmt.Sprintf("%s?response_type=%s&client_id=%sredirect_uri=%s&scope=%s&state=%s",
 		fmt.Sprintf("%s/auhtorize", cfg.Endpoint),
 		"code",
 		cfg.ClientID,
-		fmt.Sprintf("%s%s", auth.app.Configuration.App.Domain, cfg.RedirectPath),
+		fmt.Sprintf("%s%s", auth.dojo.Configuration.App.Domain, cfg.RedirectPath),
 		strings.Join(cfg.Scopes, "+"),
 		state,
 	)
@@ -145,15 +145,15 @@ type OAuthResult struct {
 }
 
 type ExchangeAuthorisationCodeRequest struct {
-	GrantType    string
-	ClientId     string
-	ClientSecret string
-	RedirectUri  string
-	Code         string
+	GrantType    string `json:"grant_type"`
+	ClientId     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	RedirectUri  string `json:"redirect_uri"`
+	Code         string `json:"code"`
 }
 
 func (auth Authentication) CompareOAuthState(ctx Context, state string) error {
-	session := auth.app.getSession(ctx.Request(), ctx.Response())
+	session := auth.dojo.getSession(ctx.Request(), ctx.Response())
 	sessionState := session.Get(oauthStateSessionKey)
 	if fmt.Sprintf("%s", sessionState) != state {
 		return errors.New("oauth state dont match")
@@ -163,7 +163,7 @@ func (auth Authentication) CompareOAuthState(ctx Context, state string) error {
 
 func (auth *Authentication) ExchangeAuthorisationCode(ctx Context, authorisationCode string) (OAuthResult, error) {
 	var result OAuthResult
-	cfg := auth.app.Configuration.Auth
+	cfg := auth.dojo.Configuration.Auth
 	body := ExchangeAuthorisationCodeRequest{
 		GrantType:    "authorisation_code",
 		ClientId:     cfg.ClientID,

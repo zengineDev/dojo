@@ -29,14 +29,14 @@ func GetPool() *Driver {
 		}
 		config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
 			// do something with every new connection
+			//fmt.Println("connect")
 			return nil
 		}
 
 		pool, err := pgxpool.ConnectConfig(context.Background(), config)
 
 		if err != nil {
-			//log.Error(err)
-			return
+			panic(err)
 		}
 
 		instance = &Driver{Pool: pool}

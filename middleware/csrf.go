@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/zengineDev/dojo"
-	"github.com/zengineDev/dojo/errorsx"
-	"github.com/zengineDev/dojo/helpers"
+	"github.com/zengineDev/x/utilsx"
 	"net/http"
 	"strings"
 )
@@ -62,14 +61,14 @@ func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 	}
 
 	return func(next dojo.Handler) dojo.Handler {
-		return func(context dojo.Context, application *dojo.Application) error {
+		return func(context dojo.Context) error {
 
 			session, err := cookieStore.Get(context.Request(), config.CookieName)
 			token := ""
 
 			// Generate token
 			if err != nil {
-				token = helpers.RandomString(int(config.TokenLength))
+				token = utilsx.RandomString(int(config.TokenLength))
 			} else {
 				// Reuse token
 				token = fmt.Sprintf("%s", session.Values["value"])
@@ -80,10 +79,10 @@ func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 			default:
 				clientToken, err := extractor(context)
 				if err != nil {
-					return errorsx.BadRequest(err)
+					return err
 				}
 				if !validateCSRFToken(token, clientToken) {
-					return errorsx.ForbiddenWithBody("invalid csrf token")
+					return dojo.NewHTTPError(http.StatusUnauthorized, "invalid csrf token")
 				}
 			}
 
@@ -91,13 +90,13 @@ func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 			session.Values["value"] = token
 			err = session.Save(context.Request(), context.Response())
 			if err != nil {
-				return errorsx.BadRequest(err)
+				return dojo.NewHTTPError(http.StatusBadRequest, "session save error")
 			}
 			context.Set(config.ContextKey, token)
 
 			context.Response().Header().Set(dojo.HeaderVary, dojo.HeaderCookie)
 
-			return next(context, application)
+			return next(context)
 		}
 	}
 }
