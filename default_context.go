@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/Masterminds/formenc/encoding/form"
 	"github.com/golang/gddo/httputil/header"
+	"github.com/tomasen/realip"
 	"io"
 	"net/http"
 	"net/url"
@@ -68,6 +69,11 @@ func (ctx *DefaultContext) Cookies() *Cookies {
 func (ctx *DefaultContext) Param(key string) string {
 	return ctx.Params().Get(key)
 }
+
+func (ctx *DefaultContext) RealIP() string {
+	return realip.FromRequest(d.Request())
+}
+
 
 func (ctx *DefaultContext) Bind(dst interface{}) error {
 	if ctx.Request().Header.Get("Content-Type") != "" {

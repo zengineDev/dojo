@@ -20,6 +20,7 @@ type Context interface {
 	JSON(code int, data interface{}) error
 	NoContent(code int) error
 	View(view string, data ViewAdditionalData) error
+	RealIP() string
 }
 
 type ParamValues interface {

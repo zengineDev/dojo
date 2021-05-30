@@ -24,6 +24,7 @@ require (
 	github.com/steinfletcher/apitest v1.5.10
 	github.com/steinfletcher/apitest-jsonpath v1.6.1
 	github.com/zengineDev/x v1.6.0
+  github.com/tomasen/realip v0.0.0-20180522021738-f0c99a92ddce
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	gopkg.in/yaml.v2 v2.4.0
 )
