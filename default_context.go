@@ -71,9 +71,8 @@ func (ctx *DefaultContext) Param(key string) string {
 }
 
 func (ctx *DefaultContext) RealIP() string {
-	return realip.FromRequest(d.Request())
+	return realip.FromRequest(ctx.Request())
 }
-
 
 func (ctx *DefaultContext) Bind(dst interface{}) error {
 	if ctx.Request().Header.Get("Content-Type") != "" {

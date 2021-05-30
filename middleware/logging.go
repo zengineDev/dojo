@@ -24,12 +24,12 @@ func Logging() dojo.MiddlewareFunc {
 
 func LoggingWithConfig(config LoggingConfig) dojo.MiddlewareFunc {
 	return func(next dojo.Handler) dojo.Handler {
-		return func(context dojo.Context, application *dojo.Application) error {
+		return func(context dojo.Context) error {
 			fields := make(map[string]interface{})
 
 			start := time.Now()
-			if err := next(context, application); err != nil {
-				// TODO add better error handling
+			if err := next(context); err != nil {
+				return err
 			}
 			stop := time.Now()
 			p := context.Request().URL.Path
@@ -40,7 +40,7 @@ func LoggingWithConfig(config LoggingConfig) dojo.MiddlewareFunc {
 			fields["method"] = context.Request().Method
 			fields["uri"] = context.Request().RequestURI
 			fields["host"] = context.Request().Host
-			fields["env"] = application.Configuration.App.Environment
+			fields["env"] = context.Dojo().Configuration.App.Environment
 			id := context.Request().Header.Get(dojo.HeaderXRequestID)
 			if id == "" {
 				id = context.Response().Header().Get(dojo.HeaderXRequestID)
@@ -66,7 +66,7 @@ func LoggingWithConfig(config LoggingConfig) dojo.MiddlewareFunc {
 			}
 			fields["status"] = s
 
-			application.Logger.WithFields(fields).Info("request_log")
+			context.Dojo().Logger.WithFields(fields).Info("request_log")
 			return nil
 		}
 	}
