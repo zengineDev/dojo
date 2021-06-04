@@ -79,6 +79,13 @@ type AuthenticationConfig struct {
 	RedirectPath string   `json:"redirectPath" yaml:"redirect_path"`
 }
 
+type RedisConfig struct {
+	Host     string `json:"host" yaml:"host"`
+	Password string `json:"password" yaml:"password"`
+	Database int    `json:"database" yaml:"database"`
+	Port     int    `json:"port" yaml:"port"`
+}
+
 type DefaultConfiguration struct {
 	App     AppConfig            `json:"dojo" yaml:"dojo"`
 	DB      DatabaseConfig       `json:"db" yaml:"db"`
@@ -86,6 +93,7 @@ type DefaultConfiguration struct {
 	Assets  AssetsConfigs        `json:"assets" yaml:"assets"`
 	Session SessionConfig        `json:"session" yaml:"session"`
 	Auth    AuthenticationConfig `json:"auth" yaml:"auth"`
+	Redis   RedisConfig          `json:"redis" yaml:"redis"`
 }
 
 const defaultShutdownTimeoutSeconds = 15
