@@ -63,6 +63,10 @@ func CSRFWithConfig(config CSRFConfig) dojo.MiddlewareFunc {
 	return func(next dojo.Handler) dojo.Handler {
 		return func(context dojo.Context) error {
 
+			if config.Skipper(context) {
+				return next(context)
+			}
+
 			session, err := cookieStore.Get(context.Request(), config.CookieName)
 			token := ""
 
