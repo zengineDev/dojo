@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Masterminds/sprig"
 	"github.com/gorilla/mux"
+	"github.com/russross/blackfriday/v2"
 	"html/template"
 	"path/filepath"
 )
@@ -41,12 +42,17 @@ func route(dojo *Dojo) func(name string, args ...string) string {
 	}
 }
 
+func markdown(input string) string {
+	return string(blackfriday.Run([]byte(input)))
+}
+
 func (ctx *DefaultContext) View(viewName string, data ViewAdditionalData) error {
 	d := ctx.dojo
 	var functions = sprig.FuncMap()
 	functions["csrf"] = csrfValue(ctx)
 	functions["activeRoute"] = activeRoute(ctx)
 	functions["route"] = route(d)
+	functions["markdown"] = markdown
 
 	name := filepath.Base(fmt.Sprintf("%s/%s.gohtml", d.Configuration.View.Path, viewName))
 	ts, err := template.New(name).Funcs(functions).ParseFiles(fmt.Sprintf("%s/%s.gohtml", d.Configuration.View.Path, viewName))
