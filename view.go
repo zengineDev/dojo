@@ -42,8 +42,12 @@ func route(dojo *Dojo) func(name string, args ...string) string {
 	}
 }
 
-func markdown(input string) string {
-	return string(blackfriday.Run([]byte(input)))
+func markdown(input string) []byte {
+	return blackfriday.Run([]byte(input))
+}
+
+func saveHTML(b []byte) template.HTML {
+	return template.HTML(b)
 }
 
 func (ctx *DefaultContext) View(viewName string, data ViewAdditionalData) error {
@@ -53,6 +57,7 @@ func (ctx *DefaultContext) View(viewName string, data ViewAdditionalData) error 
 	functions["activeRoute"] = activeRoute(ctx)
 	functions["route"] = route(d)
 	functions["markdown"] = markdown
+	functions["saveHTML"] = saveHTML
 
 	name := filepath.Base(fmt.Sprintf("%s/%s.gohtml", d.Configuration.View.Path, viewName))
 	ts, err := template.New(name).Funcs(functions).ParseFiles(fmt.Sprintf("%s/%s.gohtml", d.Configuration.View.Path, viewName))
