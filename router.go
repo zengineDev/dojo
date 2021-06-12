@@ -83,11 +83,18 @@ func (r *Router) Connect(path string, handler Handler, middlewares ...Middleware
 	r.addRoute(http.MethodConnect, path, handler, middlewares...)
 }
 
-func (r *Router) RouteGroup(prefix string, cb func(router *Router)) {
-	subRouter := r.router.PathPrefix(prefix).Subrouter()
-
+func (r *Router) Host(tpl string, cb func(router *Router)) {
+	sr := r.router.Host(tpl).Subrouter()
 	cb(&Router{
-		router: subRouter,
+		router: sr,
+		dojo:   r.dojo,
+	})
+}
+
+func (r *Router) RouteGroup(prefix string, cb func(router *Router)) {
+	sr := r.router.PathPrefix(prefix).Subrouter()
+	cb(&Router{
+		router: sr,
 		dojo:   r.dojo,
 	})
 }
